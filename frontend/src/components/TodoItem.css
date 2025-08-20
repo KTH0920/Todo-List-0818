@@ -1,13 +1,26 @@
+.edit-wrap,
+.content-wrap{
+  display: flex;
+  width: 100%;
+  gap: 20px;
+}
+
 .TodoItem {
   display: flex;
   gap: 20px;
-  padding: 10px 0;
+  padding: 10px;
   border-bottom: 1px solid #eee;
 }
 
 .TodoItem.isCompleted {
   border-radius: 5px;
   background-color: #f1f1f1;
+}
+
+.edit-wrap input {
+  flex: 1;
+  border: 1px solid #eee;
+  border-radius: 5px;
 }
 
 .TodoItem .content {

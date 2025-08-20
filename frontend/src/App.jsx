@@ -59,11 +59,57 @@ function App() {
     }
   };
 
+  const onUpdateChecked = async (id, next) => {
+    try {
+      const { data } = await axios.patch(`${API}/${id}/check`, {
+        isCompleted: next,
+      });
+
+      if (Array.isArray(data?.todos)) {
+        setTodos(data.todos);
+      } else {
+        const updated = data?.todo ?? data;
+        setTodos((prev) =>
+          prev.map((t) => (t._id === updated._id ? updated : t))
+        );
+      }
+    } catch (error) {
+      console.error("체크 상태 업데이트 실패", error);
+    }
+  };
+
+  const onUpdateText = async (id, next) => {
+    const value = next?.trim()
+
+    if (!value) return
+
+    try {
+      const { data } = await axios.patch(`${API}/${id}/text`, {
+        text: value
+      });
+
+      if (Array.isArray(data?.todos)) {
+        setTodos(data.todos);
+      } else {
+        const updated = data?.todo ?? data;
+        setTodos((prev) =>
+          prev.map((t) => (t._id === updated._id ? updated : t))
+        );
+      }
+    } catch (error) {
+      console.error("체크 상태 업데이트 실패", error);
+    }
+  };
+
   return (
     <div className="App">
       <Header />
       <TodoEditor onCreate={onCreate} />
-      <TodoList todos={todos} onDelete={onDelete} />
+      <TodoList
+        todos={Array.isArray(todos) ? todos : []}
+        onUpdateChecked={onUpdateChecked}
+        onUpdateText={onUpdateText}
+      />
     </div>
   );
 }
