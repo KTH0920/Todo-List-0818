@@ -1,15 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./TodoItem.css";
-const TodoItem = ({ todo, onDelete, onUpdateChecked, onUpdateText }) => {
-  const isCompleted = !!todo.isCompleted;
+const TodoItem = ({ todo, onDelete, onUpdateChecked, onUpdateTodo }) => {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(todo.text);
+  const isCompleted = !!todo.isCompleted;
+
+  const toYmd = (d) => new Date(d).toISOString().slice(0, 10); //yyyy-mm-dd
+  const pickDate = (t) => t?.date ?? t?.createdAt ?? new Date();
+
+  const [dateStr, setDateStr] = useState(toYmd(pickDate(todo)));
+
+  useEffect(() => {
+    if (!editing) {
+      setText(todo.text);
+      setDateStr(toYmd(pickDate(todo)));
+    }
+  }, [todo, editing]);
 
   const startEdit = () => {
     setText(todo.text);
+    setDateStr(toYmd(pickDate(todo)));
     setEditing(true);
   };
-
   const cancleEdit = () => {
     setText(todo.text);
     setEditing(false);
@@ -17,14 +29,24 @@ const TodoItem = ({ todo, onDelete, onUpdateChecked, onUpdateText }) => {
 
   const saveEdit = async () => {
     const next = text.trim();
-    if (!next || next == todo.text) return setEditing(false);
-    await onUpdateText(todo._id, next);
+    const prevYmd = toYmd(pickDate(todo));
+
+    if (!next || (next === todo.text && prevYmd === dateStr)) {
+      return setEditing(false);
+    }
+    const nextDateISO = new Date(`${dateStr}T00:00:00`).toISOString();
+
+    await onUpdateTodo(todo._id, {
+      text: next,
+      date: nextDateISO,
+    });
+
     setEditing(false);
   };
 
   const handleKeyDown = () => {
-    if (e.ksy == "Enter") saveEdit();
-    if (e.ksy == "Escape") cancleEdit();
+    if (e.key == "Enter") saveEdit();
+    if (e.key == "Escape") cancleEdit();
   };
 
   return (
@@ -42,10 +64,15 @@ const TodoItem = ({ todo, onDelete, onUpdateChecked, onUpdateText }) => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="수정할 내용을 입력하세요."
+            placeholder="수정할 내용을 입력하세요"
           />
+
           <div className="date">
-            {new Date(`${todo.date}`).toLocaleDateString()}
+            <input
+              type="date"
+              value={dateStr}
+              onChange={(e) => setDateStr(e.target.value)}
+            />
           </div>
           <div className="btn-wrap">
             <button className="updateBtn" onClick={saveEdit}>
